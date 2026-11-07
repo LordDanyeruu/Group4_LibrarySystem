@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE INDEX — Digital Library & Shelf Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Libre+Baskerville:ital,wght@0,700;1,400&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- TOP NAVIGATION & METRICS BAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img src="Images/Logo Image Webprog.png", style="width: 140px; height: 90px;">
+        <div class="brand-divider"></div>
+        <div class="brand-subtitle">
+          <strong>Visual Stack Management</strong>
+          <span>5-Tier Walnut Archive System</span>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-pill">
+          <span class="stat-label">TOTAL VOLUMES</span>
+          <strong id="statTotal">0</strong>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">CATEGORIES</span>
+          <strong id="statCats">0</strong>
+        </div>
+        <div class="stat-pill accent">
+          <span class="stat-label">CHECKED OUT</span>
+          <strong id="statOut">0</strong>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN 2-COLUMN WORKSPACE -->
+  <main class="container">
+    <!-- LEFT COLUMN: MULTI-WING 5-TIER WALNUT BOOKCASE -->
+    <section class="bookcase-section">
+      <!-- Wing Control Bar & Category Filter Pills -->
+      <div class="control-deck">
+        <div class="wing-bar">
+          <button type="button" id="prevWingBtn" class="wing-btn">
+            <span> < </span> Prev Wing
+          </button>
+          <div class="wing-info">
+            <strong id="wingTitle">BOOKCASE WING 1 OF 2</strong>
+            <span id="wingSub">Showing Shelves 1–5 &bull; Capacity: 11 Spines / Row</span>
+          </div>
+          <button type="button" id="nextWingBtn" class="wing-btn">
+            Next Wing <span> ></span>
+          </button>
+        </div>
+
+        <div id="catTabs" class="cat-tabs" aria-label="Category Jump Tabs"></div>
+      </div>
+
+      <!-- 5-Tier Walnut Wooden Bookcase -->
+      <div class="bookcase">
+        <div class="wood-top"></div>
+        <div id="shelves" class="wood-body"></div>
+        <div class="wood-bottom"></div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: MANAGEMENT SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- 1. Search Catalog Card -->
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <h3>Search Catalog</h3>
+            <p class="card-sub">Locate books by title, author, or genre</p>
+          </div>
+          <span id="totalBooksBadge" class="badge">0 Books</span>
+        </div>
+
+        <form id="searchForm" class="search-box">
+          <div class="input-icon-wrap">
+            <svg class="search-icon" viewBox="0 0 20 20" fill="none">
+              <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="2"/>
+              <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Search title, author, category...">
+          </div>
+          <button type="submit" class="btn">Find</button>
+        </form>
+
+        <div id="searchInfo" class="search-info hidden">
+          <span id="searchText">Showing results</span>
+          <button type="button" id="resetBtn" class="link-btn">Clear Filter</button>
+        </div>
+      </div>
+
+      <!-- 2. Register a Book Card -->
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <h3>Register a Book</h3>
+            <p class="card-sub">Auto-routes spine to its category shelf</p>
+          </div>
+        </div>
+
+        <form id="bookForm">
+          <div class="field">
+            <label for="title">Book Title</label>
+            <input type="text" id="title" placeholder="e.g. The Pragmatic Programmer" required>
+          </div>
+
+          <div class="field">
+            <label for="author">Author Name</label>
+            <input type="text" id="author" placeholder="e.g. Andrew Hunt">
+          </div>
+
+          <div class="field">
+            <label for="categorySelect">Category Shelf</label>
+            <select id="categorySelect"></select>
+          </div>
+
+          <div id="newCatField" class="field hidden">
+            <label for="newCatInput">New Category Name</label>
+            <input type="text" id="newCatInput" placeholder="e.g. Philosophy, Manga, Art...">
+          </div>
+
+          <div class="field">
+            <label>Spine Color Theme</label>
+            <input type="hidden" id="color" value="blue">
+            <div class="swatch-row" id="swatchGroup">
+              <button type="button" class="swatch blue active" data-color="blue" title="Royal Blue"></button>
+              <button type="button" class="swatch slate" data-color="slate" title="Charcoal Slate"></button>
+              <button type="button" class="swatch green" data-color="green" title="Emerald Green"></button>
+              <button type="button" class="swatch red" data-color="red" title="Crimson Red"></button>
+              <button type="button" class="swatch amber" data-color="amber" title="Warm Amber"></button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn full">Add Volume to Bookshelf</button>
+        </form>
+      </div>
+
+      <!-- 3. Checked Out Desk Card -->
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <h3>Checked Out Desk</h3>
+            <p class="card-sub">Active loans &amp; quick returns</p>
+          </div>
+          <span id="count" class="badge badge-amber">0 Out</span>
+        </div>
+        <div id="borrowedList" class="borrowed-list">
+          <p class="empty">No books borrowed yet.</p>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- FLOATING HOVER TOOLTIP -->
+  <div id="tooltip" class="tooltip hidden">
+    <span id="tipCat" class="tip-cat">Category</span>
+    <strong id="tipTitle">Title</strong>
+    <span id="tipInfo">Author</span>
+  </div>
+
+  <!-- 3D BOOK INSPECTOR MODAL -->
+  <div id="modal" class="modal-bg hidden">
+    <div class="modal-box">
+      <div class="modal-top">
+        <div class="modal-top-left">
+          <span class="modal-dot"></span>
+          <span id="mShelf">SHELF 1 // SCI-FI</span>
+        </div>
+        <button type="button" id="closeBtn" class="close-btn" title="Close (Esc)">✕</button>
+      </div>
+
+      <div class="modal-content">
+        <!-- Side Spine + 3D Extruded Cover -->
+        <div class="visuals">
+          <div class="col">
+            <small>PULLED SPINE</small>
+            <div id="mSpine" class="side-spine">
+              <div class="foil-line"></div>
+              <span id="mSpineTitle">Title</span>
+              <div class="foil-line"></div>
+            </div>
+          </div>
+
+          <div class="col">
+            <small>3D COVER VIEW</small>
+            <div id="mCover" class="front-cover">
+              <div class="cover-crease"></div>
+              <span id="mCat" class="cat-tag">CATEGORY</span>
+              <h4 id="mCoverTitle">Title</h4>
+              <p id="mCoverAuthor">Author</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Book Details & Controls -->
+        <div class="details">
+          <span id="mStatus" class="status ok">● Available</span>
+          <h3 id="mTitle">Title</h3>
+          <p class="meta">
+            By <strong id="mAuthor">Author</strong> &bull;
+            Section: <strong id="mCatText">Sci-Fi</strong>
+          </p>
+          <p id="mDesc" class="desc">Description</p>
+
+          <div class="actions">
+            <button type="button" id="borrowBtn" class="btn-orange">Check Out / Borrow Book</button>
+            <button type="button" id="deleteBtn" class="btn-del">Remove</button>
+          </div>
+
+          <div class="nav-btns">
+            <button type="button" id="prevBtn" class="btn-gray">← Previous Spine</button>
+            <button type="button" id="nextBtn" class="btn-gray">Next Spine →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- FULL-SCREEN LOGIN OVERLAY -->
+  <div id="loginScreen" class="login-overlay">
+    <div class="login-card">
+      <div class="card-strip"></div>
+
+      <div class="brand-box">
+        <img src="Images/Logo Image Webprog.png", style="width: 140px; height: 85px;">
+        <span class="portal-tag">< LIBRARY MANAGEMENT // ARCHIVE SYSTEM ></span>
+      </div>
+
+      <div id="errorBox" class="error-box hidden">
+        Please enter a valid username and password.
+      </div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="user">Username or Student ID</label>
+          <input type="text" id="user" placeholder="e.g. admin" required>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="pass">Password</label>
+            <button type="button" id="toggleBtn" class="link-btn">Show</button>
+          </div>
+          <input type="password" id="pass" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="btn full">Sign In to Library</button>
+      </form>
+
+    </div>
+  </div>
+  
+  <script src="script.js"></script>
+</body>
+</html>
