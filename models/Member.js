@@ -18,11 +18,16 @@ const mbrSchema = new mongoose.Schema({
         trim: true,
         unique: true,
     },
+    password: {
+        type: String,
+        required: [true, 'Password is required'],
+    },
     memberID: {
         type: String,
         required: [true, 'Member ID is required'],
         unique: true,
         trim: true,
+        default: () => Math.floor(100000 + Math.random() * 900000),
     },
 },
 {timestamps: true});
