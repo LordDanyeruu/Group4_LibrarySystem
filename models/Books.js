@@ -6,28 +6,47 @@ const bkSchema = new mongoose.Schema({
         required: [true, 'Book title is required'],
         trim: true,
     },
+
     author: {
         type: String,
         required: [true, 'Author is required'],
         trim: true,
     },
-    isbn: {
-        type: String,
-        required: [true, 'ISBN is required'],
-        unique: true,
-        trim: true,
-    },
+
     category: {
         type: String,
         required: [true, 'Category is required'],
         trim: true,
     },
+
     status: {
         type: String,
         enum: ['Available', 'Borrowed'],
         default: 'Available',
     },
-},
-{timestamps: true});
+
+    color: {
+        type: String,
+        enum: ['blue', 'slate', 'green', 'red', 'amber'],
+        default: 'blue',
+    },
+
+    borrowedBy: {
+        type: String,
+        default: null,
+    },
+
+    desc: {
+        type: String,
+        default: 'Registered volume in The Index library catalog.',
+    }},
+
+    {timestamps: true
+    toJSON: {virtuals: true},
+    toObject: {virtuals: true}
+});
+
+bkschema.virtual('borrowed').get(function() {
+    return this.status === 'Borrowed';
 
 module.exports = mongoose.model('Book', bkSchema);
