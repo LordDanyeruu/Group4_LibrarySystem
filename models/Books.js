@@ -41,7 +41,7 @@ const bkSchema = new mongoose.Schema({
         default: 'Registered volume in The Index library catalog.',
     }},
 
-    {timestamps: true
+    {timestamps: true,
     toJSON: {virtuals: true},
     toObject: {virtuals: true}
 });
@@ -49,4 +49,5 @@ const bkSchema = new mongoose.Schema({
 bkschema.virtual('borrowed').get(function() {
     return this.status === 'Borrowed';
 
-module.exports = mongoose.model('Book', bkSchema);
+module.exports = mongoose.model('Book', bkSchema); 
+})
