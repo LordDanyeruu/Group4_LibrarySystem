@@ -40,4 +40,27 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.post('/login', async (req,res) => {
+    try {
+        const { userName, password } = req.body;
+    if (!userName || !password) {
+        return res.status(400).json({ message: 'Please enter your email and password' });
+    }
+
+    const cleanEmail = userName.trim();
+    const member = await Member.findOne({ email: cleanEmail });
+
+    if (!member || member.password !== password) {
+        return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    const result = member.toObject();
+    delete result.password;
+    res.status(200).json(result);
+} catch (error) {
+    res.status(500).json({ message: error.message });
+}
+});
+
+
 module.exports = router;

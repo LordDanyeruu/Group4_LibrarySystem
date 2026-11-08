@@ -24,50 +24,37 @@ let categories = [
   "Mystery"
 ];
 
-let books = [
-  // SCI-FI (13 books to showcase per-shelf pagination)
-  { id: 1, title: "At", author: "A. T. Vance", category: "Sci-Fi", color: "blue", height: 146, borrowed: false, desc: "A speculative chronicle set at the edge of a collapsing star system." },
-  { id: 2, title: "Fahrenheit 451", author: "Ray Bradbury", category: "Sci-Fi", color: "amber", height: 148, borrowed: false, desc: "Fireman Guy Montag begins to read the books he is sworn to burn." },
-  { id: 3, title: "Dune", author: "Frank Herbert", category: "Sci-Fi", color: "slate", height: 152, borrowed: false, desc: "Paul Atreides navigates politics on the desert planet Arrakis." },
-  { id: 4, title: "Neuromancer", author: "William Gibson", category: "Sci-Fi", color: "blue", height: 142, borrowed: false, desc: "Console cowboy Case is hired for one last cyberspace heist." },
-  { id: 5, title: "Foundation", author: "Isaac Asimov", category: "Sci-Fi", color: "red", height: 146, borrowed: false, desc: "Hari Seldon uses psychohistory to guide humanity." },
-  { id: 6, title: "1984", author: "George Orwell", category: "Sci-Fi", color: "slate", height: 144, borrowed: false, desc: "Winston Smith wrestles with oppression under Big Brother." },
-  { id: 7, title: "Snow Crash", author: "Neal Stephenson", category: "Sci-Fi", color: "green", height: 150, borrowed: false, desc: "Hiro Protagonist races through the Metaverse." },
-  { id: 8, title: "Hyperion", author: "Dan Simmons", category: "Sci-Fi", color: "amber", height: 154, borrowed: false, desc: "Seven pilgrims share their stories on a journey to the Time Tombs." },
-  { id: 9, title: "Brave New World", author: "Aldous Huxley", category: "Sci-Fi", color: "blue", height: 140, borrowed: false, desc: "A future society driven by genetic engineering." },
-  { id: 10, title: "The Martian", author: "Andy Weir", category: "Sci-Fi", color: "red", height: 146, borrowed: false, desc: "Astronaut Mark Watney uses botany and engineering to survive on Mars." },
-  { id: 11, title: "Solaris", author: "Stanislaw Lem", category: "Sci-Fi", color: "green", height: 142, borrowed: false, desc: "Scientists study a sentient ocean covering an alien world." },
-  { id: 12, title: "Left Hand of Darkness", author: "Ursula K. Le Guin", category: "Sci-Fi", color: "amber", height: 148, borrowed: false, desc: "Envoy Genly Ai visits the winter world of Gethen." },
-  { id: 13, title: "Ender's Game", author: "Orson Scott Card", category: "Sci-Fi", color: "blue", height: 144, borrowed: false, desc: "Young Ender Wiggin trains at Battle School in orbit." },
-
-  // FANTASY
-  { id: 14, title: "Alice in Wonderland", author: "Lewis Carroll", category: "Fantasy", color: "red", height: 138, borrowed: false, desc: "Alice tumbles down the rabbit hole into a whimsical world." },
-  { id: 15, title: "Lord of the Rings", author: "J.R.R. Tolkien", category: "Fantasy", color: "red", height: 138, borrowed: false, desc: "Frodo Baggins embarks on a perilous quest to destroy the One Ring." },
-  { id: 16, title: "Harry Potter", author: "J.K. Rowling", category: "Fantasy", color: "green", height: 150, borrowed: false, desc: "A young wizard discovers his magical heritage at Hogwarts." },
-
-  // GENERAL FICTION
-  { id: 17, title: "The exiled Epilogue", author: "K. R. Mercer", category: "General Fiction", color: "slate", height: 140, borrowed: false, desc: "A lone archivist pieces together the final unwritten chapter." },
-  { id: 18, title: "The Road", author: "Cormac McCarthy", category: "General Fiction", color: "amber", height: 146, borrowed: false, desc: "A father and son walk alone through burned America." },
-
-  // COMPUTER SCIENCE
-  { id: 19, title: "Clean Architecture", author: "Robert C. Martin", category: "Computer Science", color: "blue", height: 148, borrowed: false, desc: "Core principles of software structure and design." },
-  { id: 20, title: "Intro to Algorithms", author: "Cormen et al.", category: "Computer Science", color: "green", height: 154, borrowed: false, desc: "Guide to divide-and-conquer, greedy, and graph algorithms." },
-
-  // HISTORY
-  { id: 21, title: "The forgotten age", author: "Elena Rostova", category: "History", color: "amber", height: 154, borrowed: false, desc: "Uncovering lost bronze-age citadels beneath the desert dunes." },
-  { id: 22, title: "Meditations", author: "Marcus Aurelius", category: "History", color: "red", height: 140, borrowed: false, desc: "Stoic journals on discipline, resilience, and clarity of mind." },
-
-  // WING 2 CATEGORIES
-  { id: 23, title: "The wanderer's log", author: "Soren Lindqvist", category: "Science", color: "green", height: 150, borrowed: false, desc: "Field notes recorded across uncharted archipelagos." },
-  { id: 24, title: "Cosmos", author: "Carl Sagan", category: "Science", color: "amber", height: 150, borrowed: false, desc: "Fifteen billion years of cosmic evolution and science." },
-  { id: 25, title: "Cardo Dalisay", author: "Coco Martin", category: "Action / Drama", color: "blue", height: 146, borrowed: false, desc: "The relentless pursuit of justice, brotherhood, and duty." },
-  { id: 26, title: "Sherlock Holmes", author: "Arthur Conan Doyle", category: "Mystery", color: "slate", height: 148, borrowed: false, desc: "Classic detective investigations from 221B Baker Street." }
-];
-
+let books = [];
+let activeBorrows = [];
 let wingPage = 0;
 let shelfPages = {};
 let selectedId = null;
+let editingId = null;
+let currentMember = null;
 let search = "";
+
+async function loadBooks() {
+  try {
+    const [booksRes, borrowsRes] = await Promise.all([
+      fetch('/api/books'),
+      fetch('/api/borrows?status=Borrowed')
+    ]);
+
+    books = await booksRes.json();
+    activeBorrows = await borrowsRes.json();
+
+    books.forEach(b => {
+      if (b.category && !categories.includes(b.category)) {
+        categories.push(b.category);
+      }
+    });
+    
+    showShelves();
+    showBorrowed();
+  } catch (error) {
+    notify('Could not load books from the database');
+  }
+}
 
 // DOM Elements
 const shelves = document.getElementById('shelves');
@@ -294,15 +281,20 @@ function showBorrowed() {
     return;
   }
 
-  borrowedList.innerHTML = out.map(b => `
+  borrowedList.innerHTML = out.map(b => {
+    const rec = activeBorrows.find(r => r.book && (r.book._id === b.id || r.book === b.id));
+    const borrowerName = rec && rec.member ? `By: ${rec.member.name}`: b.category;
+    return`
+
     <div class="item">
       <div>
         <strong>${b.title}</strong>
-        <span>${b.author} &bull; ${b.category}</span>
+        <span>${b.author} &bull; ${borrowerName}</span>
       </div>
-      <button class="btn-small" onclick="borrowBook(${b.id})">Return</button>
+      <button class="btn-small" onclick="borrowBook('${b.id}')">Return</button>
     </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // 4. Open 3D Book Modal
@@ -346,33 +338,128 @@ function openModal(id) {
   modal.classList.remove('hidden');
 }
 
-// 5. Borrow or Return Book
-function borrowBook(id) {
+// 5. Borrow or Return Book via /api/borrows
+async function borrowBook(id) {
   const book = books.find(b => b.id === id);
   if (!book) return;
 
-  book.borrowed = !book.borrowed;
-  showShelves();
-  showBorrowed();
-
-  if (!modal.classList.contains('hidden') && selectedId === id) {
-    openModal(id);
+  if (!currentMember) {
+    notify('Please sign in first to borrow or return books.');
+    return;
   }
 
-  notify(book.borrowed ? `Checked out "${book.title}"` : `Returned "${book.title}" to shelf`);
+  try {
+    let res;
+    if (!book.borrowed) {
+      // Borrow: POST /api/borrows with { book, member, dueDate }
+      res = await fetch('/api/borrows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          book: book.id,
+          member: currentMember._id,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        })
+      });
+    } else {
+      // Return: Find BorrowRecord._id and call PUT /api/borrows/:id/return
+      const record = activeBorrows.find(
+        r => (r.book && (r.book._id === id || r.book.id === id)) || r.book === id
+      );
+      if (!record) {
+        notify('Active borrow record not found.');
+        return;
+      }
+      res = await fetch(`/api/borrows/${record._id}/return`, {
+        method: 'PUT'
+      });
+    }
+
+    const data = await res.json();
+    if (!res.ok) {
+      notify(data.message || 'Could not update borrow status.');
+      return;
+    }
+
+    const wasBorrowed = book.borrowed;
+    await loadBooks();
+
+    if (!modal.classList.contains('hidden') && selectedId === id) {
+      openModal(id);
+    }
+
+    notify(!wasBorrowed ? `Checked out "${book.title}"` : `Returned "${book.title}" to shelf`);
+  } catch (err) {
+    notify('Server error while updating borrow status.');
+  }
 }
 window.borrowBook = borrowBook;
 
 document.getElementById('borrowBtn').onclick = () => borrowBook(selectedId);
 
-// 6. Delete Book
-document.getElementById('deleteBtn').onclick = () => {
-  books = books.filter(b => b.id !== selectedId);
-  modal.classList.add('hidden');
-  showShelves();
-  showBorrowed();
-  notify('Volume removed from catalog.');
-};
+// 6A. Edit Book (GET /api/books/:id -> populate sidebar form)
+const editBtn = document.getElementById('editBtn');
+const submitBookBtn = document.getElementById('submitBookBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+async function editBook(id) {
+  try {
+    const res = await fetch(`/api/books/${id}`);
+    const book = await res.json();
+    if (!res.ok) {
+      notify(book.message || 'Could not load book details.');
+      return;
+    }
+
+    editingId = book.id;
+    document.getElementById('title').value = book.title;
+    document.getElementById('author').value = book.author;
+    categorySelect.value = categories.includes(book.category) ? book.category : '__NEW__';
+    colorInput.value = book.color || 'blue';
+    swatches.forEach(s => s.classList.toggle('active', s.getAttribute('data-color') === colorInput.value));
+
+    if (submitBookBtn) submitBookBtn.textContent = 'Update Volume Details';
+    if (cancelEditBtn) cancelEditBtn.classList.remove('hidden');
+
+    modal.classList.add('hidden');
+    document.getElementById('title').focus();
+    notify(`Editing "${book.title}" in sidebar form`);
+  } catch (err) {
+    notify('Error loading book for edit.');
+  }
+}
+
+if (editBtn) {
+  editBtn.onclick = () => editBook(selectedId);
+}
+
+if (cancelEditBtn) {
+  cancelEditBtn.onclick = () => {
+    editingId = null;
+    document.getElementById('bookForm').reset();
+    if (submitBookBtn) submitBookBtn.textContent = 'Add Volume to Bookshelf';
+    cancelEditBtn.classList.add('hidden');
+  };
+}
+
+// 6B. Delete Book (DELETE /api/books/:id)
+async function deleteBook(id) {
+  try {
+    const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) {
+      notify(data.message || 'Could not delete book.');
+      return;
+    }
+    modal.classList.add('hidden');
+    await loadBooks();
+    notify('Volume removed from catalog.');
+  } catch (err) {
+    notify('Server error while deleting book.');
+  }
+}
+
+document.getElementById('deleteBtn').onclick = () => deleteBook(selectedId);
 
 // 7. Modal Prev / Next & Close
 function stepBook(dir) {
@@ -405,7 +492,7 @@ categorySelect.onchange = () => {
   newCatInput.required = isNew;
 };
 
-document.getElementById('bookForm').onsubmit = (e) => {
+async function saveBook(e) {
   e.preventDefault();
 
   let chosenCat = categorySelect.value;
@@ -417,29 +504,51 @@ document.getElementById('bookForm').onsubmit = (e) => {
     }
   }
 
-  const newBook = {
-    id: Date.now(),
+  const bookData = {
     title: document.getElementById('title').value.trim(),
     author: document.getElementById('author').value.trim() || 'Unknown Author',
     category: chosenCat,
-    color: colorInput.value,
-    height: Math.floor(Math.random() * 14) + 140,
-    borrowed: false,
-    desc: `Registered ${chosenCat} volume in The Index library catalog.`
+    color: colorInput.value
   };
 
-  books.push(newBook);
+  try {
+    const url = editingId ? `/api/books/${editingId}` : '/api/books';
+    const method = editingId ? 'PUT' : 'POST';
 
-  const catIdx = categories.indexOf(chosenCat);
-  wingPage = Math.floor(catIdx / SHELVES_PER_WING);
-  const catBooksCount = books.filter(b => b.category === chosenCat).length;
-  shelfPages[chosenCat] = Math.floor((catBooksCount - 1) / MAX_PER_SHELF);
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bookData)
+    });
+    const savedBook = await res.json();
 
-  e.target.reset();
-  newCatField.classList.add('hidden');
-  showShelves();
-  notify(`Added "${newBook.title}" to ${chosenCat} (Shelf ${catIdx + 1})`);
-};
+    if (!res.ok) {
+      notify(savedBook.message || 'Could not save book.');
+      return;
+    }
+
+    const wasEditing = Boolean(editingId);
+    editingId = null;
+    if (submitBookBtn) submitBookBtn.textContent = 'Add Volume to Bookshelf';
+    if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
+
+    await loadBooks();
+
+    const catIdx = categories.indexOf(chosenCat);
+    wingPage = Math.floor(catIdx / SHELVES_PER_WING);
+    const catBooksCount = books.filter(b => b.category === chosenCat).length;
+    shelfPages[chosenCat] = Math.floor(Math.max(0, catBooksCount - 1) / MAX_PER_SHELF);
+
+    e.target.reset();
+    newCatField.classList.add('hidden');
+    showShelves();
+    notify(wasEditing ? `Updated "${savedBook.title}"` : `Added "${savedBook.title}" to ${chosenCat}`);
+  } catch (err) {
+    notify('Error saving book to database.');
+  }
+}
+
+document.getElementById('bookForm').onsubmit = saveBook;
 
 // 9. Live Catalog Search
 const searchInput = document.getElementById('searchInput');
@@ -497,16 +606,47 @@ function notify(msg) {
 // Start App
 showShelves();
 showBorrowed();
+loadBooks();
 
 // ============================================================================
-// 11. LOGIN OVERLAY & LOGOUT HANDLER
+// 11. LOGIN & SIGN-UP OVERLAY HANDLER
 // ============================================================================
 const loginScreen = document.getElementById('loginScreen');
 const loginForm = document.getElementById('loginForm');
 const user = document.getElementById('user');
 const pass = document.getElementById('pass');
+const regName = document.getElementById('regName');
+const regEmail = document.getElementById('regEmail');
+const regContact = document.getElementById('regContact');
+const signInFields = document.getElementById('signInFields');
+const signUpFields = document.getElementById('signUpFields');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const switchAuthModeBtn = document.getElementById('switchAuthModeBtn');
 const toggleBtn = document.getElementById('toggleBtn');
 const errorBox = document.getElementById('errorBox');
+
+let isSignUpMode = false;
+
+// Switch between Sign In and Create Account
+if (switchAuthModeBtn) {
+  switchAuthModeBtn.onclick = () => {
+    isSignUpMode = !isSignUpMode;
+    errorBox.classList.add('hidden');
+    signInFields.classList.toggle('hidden', isSignUpMode);
+    signUpFields.classList.toggle('hidden', !isSignUpMode);
+
+    // Prevent hidden inputs from blocking form submit
+    user.required = !isSignUpMode;
+    regName.required = isSignUpMode;
+    regEmail.required = isSignUpMode;
+    regContact.required = isSignUpMode;
+
+    authSubmitBtn.textContent = isSignUpMode ? 'Create Member Account' : 'Sign In to Library';
+    switchAuthModeBtn.textContent = isSignUpMode
+      ? 'Already have an account? Sign In'
+      : 'New member? Create an account';
+  };
+}
 
 // Show / Hide Password
 toggleBtn.onclick = () => {
@@ -515,24 +655,67 @@ toggleBtn.onclick = () => {
   toggleBtn.textContent = isPass ? 'Hide' : 'Show';
 };
 
-// Sign In & Unlock Library
-loginForm.onsubmit = (e) => {
+// Sign In or Sign Up via /api/members
+loginForm.onsubmit = async (e) => {
   e.preventDefault();
-
-  const username = user.value.trim();
   const password = pass.value.trim();
 
-  if (!username || !password) {
-    errorBox.classList.remove('hidden');
-    return;
-  }
+  try {
+    let res;
+    if (isSignUpMode) {
+      const name = regName.value.trim();
+      const email = regEmail.value.trim();
+      const contactNumber = regContact.value.trim();
 
-  errorBox.classList.add('hidden');
-  loginScreen.classList.add('hidden');
-  notify(`Welcome back, ${username}!`);
+      if (!name || !email || !contactNumber || !password) {
+        errorBox.textContent = 'Please fill in Name, Email, Contact Number, and Password.';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      res = await fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, contactNumber, password })
+      });
+    } else {
+      const userName = user.value.trim();
+      if (!userName || !password) {
+        errorBox.textContent = 'Please enter your email and password.';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      // Matches const { userName, password } = req.body in your memberRoutes.js!
+      res = await fetch('/api/members/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName, password })
+      });
+    }
+
+    const data = await res.json();
+    if (!res.ok) {
+      errorBox.textContent = data.message || 'Authentication failed.';
+      errorBox.classList.remove('hidden');
+      return;
+    }
+
+    currentMember = data;
+    errorBox.classList.add('hidden');
+    loginScreen.classList.add('hidden');
+    notify(
+      isSignUpMode
+        ? `Account created! Welcome, ${data.name} (ID: ${data.memberID})`
+        : `Welcome back, ${data.name} (ID: ${data.memberID})!`
+    );
+    loadBooks();
+  } catch (err) {
+    errorBox.textContent = 'Could not connect to server.';
+    errorBox.classList.remove('hidden');
+  }
 };
 
-// Automatically add a "Log Out" button to the top stats bar
 const statsRow = document.querySelector('.stats-row');
 if (statsRow) {
   const logoutBtn = document.createElement('button');
@@ -540,6 +723,7 @@ if (statsRow) {
   logoutBtn.className = 'wing-btn';
   logoutBtn.textContent = 'Log Out';
   logoutBtn.onclick = () => {
+    currentMember = null;
     loginForm.reset();
     loginScreen.classList.remove('hidden');
   };

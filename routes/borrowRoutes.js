@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
         }
 
         const records = await BorrowRecord.find(filter)
-        .populate('book', 'title autor category')
+        .populate('book', 'title author category')
         .populate('member', 'name memberID')
         .sort({borrowDate: -1});
         
@@ -24,9 +24,9 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const {book, member, duedate} = req.body;
+        const {book, member, dueDate} = req.body;
 
-        if (!book || !member || !duedate) {
+        if (!book || !member || !dueDate) {
             return res.status(400).json({message: 'Book, member, and due date are required'});
         }
 
@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
             return res.status(404).json({message: 'This book is already borrowed'});
         }
 
-        const record = await BorrowRecord.create({book, member, duedate});
+        const record = await BorrowRecord.create({book, member, dueDate});
         bookDoc.status = 'Borrowed';
         await bookDoc.save();
 
