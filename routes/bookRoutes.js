@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
         }
         const newBook = await Book.create({ 
             title,
-            author = author || 'Unknown Author',
+            author: author || 'Unknown Author',
             category,
             status: 'Available',
             color: color || 'blue',
