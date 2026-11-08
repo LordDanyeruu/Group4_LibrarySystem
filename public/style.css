@@ -518,12 +518,16 @@ body {
 /* Search Box */
 .search-box {
   display: flex;
+  align-items: center;
   gap: 8px;
+  width: 100%;
 }
 
 .input-icon-wrap {
   position: relative;
   flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .search-icon {
@@ -535,10 +539,13 @@ body {
   height: 15px;
   color: #94a3b8;
   pointer-events: none;
+  z-index: 10;
 }
 
 .input-icon-wrap input {
-  padding-left: 34px;
+  width: 100%;
+  padding: 8px 12px 8px 34px !important;
+  box-sizing: border-box;
 }
 
 .search-info {
