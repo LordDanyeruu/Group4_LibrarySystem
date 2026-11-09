@@ -729,3 +729,24 @@ if (statsRow) {
   };
   statsRow.appendChild(logoutBtn);
 }
+
+// Auto-update AVAILABLE BOOKS pill whenever the page updates
+function syncAvailableCount() {
+  const availEl = document.getElementById('statAvail');
+  if (availEl && typeof books !== 'undefined') {
+    availEl.textContent = books.filter(b => !b.borrowed).length;
+  }
+}
+
+const origShowShelves = showShelves;
+showShelves = function () {
+  origShowShelves();
+  syncAvailableCount();
+};
+syncAvailableCount();
+
+const totalPill = document.getElementById('statTotal')?.parentElement;
+const availPill = document.getElementById('statAvail')?.parentElement;
+if (totalPill && availPill) {
+  totalPill.after(availPill);
+}

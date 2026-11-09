@@ -1144,3 +1144,12 @@ input[type="password"]:focus {
   margin-bottom: 14px;
   text-align: center;
 }
+
+.stat-pill.available {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.stat-pill.available strong {
+  color: #15803d;
+}
